@@ -2,6 +2,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker 
 from .config import settings 
+from cryptography.fernet import Fernet
+from app.core.config import settings
 
 engine = create_engine(
     settings.database_url,
@@ -16,7 +18,7 @@ SessionLocal = sessionmaker(
                             ) 
 Base = declarative_base()
 
-"""зависимость, которая создает новую сессию базы данных для каждого запроса и гарантированно закрывает ее после завершения запроса."""
+"""зависимость, которая создает новую сессию базы данных для каждого запроса и гарантированно закрывает ee после завершения запроса."""
 def get_db():
     db = SessionLocal()
     try:
@@ -27,3 +29,6 @@ def get_db():
 """Инициализация БД"""
 def init_db():
     Base.metadata.create_all(bind=engine)
+
+
+cipher = Fernet(settings.ENCRYPTION_KEY.encode()) # type: ignore
