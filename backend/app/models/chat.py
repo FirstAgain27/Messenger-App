@@ -30,3 +30,4 @@ class GroupChat(Chat):
     __mapper_args__ = {
         "polymorphic_identity" : "group"
     }
+

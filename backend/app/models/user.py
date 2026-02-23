@@ -8,11 +8,13 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
 
     phone = Column(String(20), unique=True, nullable=False, index=True)
-    email = Column(String())
+    email = Column(String(255), unique=True, nullable=True, index=True)
     username = Column(String(33),  unique=True, nullable=False, index=True)
     first_name = Column(String(64), nullable=False)
     last_name = Column(String(64), nullable=True)
     bio = Column(Text, nullable=True)
+
+    # Фото профиля
     avatar_url = Column(String(512), nullable=True)
 
     password_hash = Column(String(255), nullable=False)
