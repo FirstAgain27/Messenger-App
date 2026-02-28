@@ -1,6 +1,6 @@
-from typing import Optional
+from typing import Optional, Set 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 
 from app.models import User
@@ -43,13 +43,36 @@ class UserRepository:
         return user 
     
 
-    # TODO: Добавить корутину для обновления пользователя
-    async def update_user(self):
-        pass
+    async def update_user(self, user_id : int, updates : dict) -> Optional[User]:
+        
+        user = await self.session.get(User, user_id)
+
+        if user is None:
+            return None
+        
+        allowed_fields : Set[str] = {"phone", "username", "first_name", 
+                                     "last_name", "email", "bio", "avatar_url"}
+        
+        for field, value in updates.items():
+            if field in allowed_fields and value is not None: 
+                setattr(user, field, value)
+            
+        await self.session.flush()
     
-    """TODO: -Добавить обработку уникальности username
-             -Добавить метод get_multi для получения списка пользователей с пагинацией
-    """
+        return user
+    
+
+
+
+
+
+
+        
+        
+        
+        
+        
+        
     
 
 
