@@ -1,6 +1,6 @@
-from typing import Optional, Set 
+from typing import Optional, Set
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update
+from sqlalchemy import select, update, delete
 
 
 from app.models import User
@@ -30,7 +30,7 @@ class UserRepository:
     async def create_user(self, username: str,
                                 first_name: str,
                                 password_hash: str,
-                                phone) -> User:
+                                phone: str) -> User:
 
         user = User(username=username,
                     first_name=first_name,
@@ -60,6 +60,19 @@ class UserRepository:
         await self.session.flush()
     
         return user
+    
+    async def delete_user(self, user_id : int) -> bool:
+        user = await self.session.get(User, user_id)
+
+        if user is None:
+            return False
+        
+        await self.session.delete(user)
+        await self.session.flush()
+
+        return True
+
+  
     
 
 
