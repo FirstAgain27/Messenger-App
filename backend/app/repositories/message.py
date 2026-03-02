@@ -1,13 +1,12 @@
-from typing import Optional, Set, List, Dict
+from typing import Optional, Set, List
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, delete
+from sqlalchemy import select
 
 from app.models import Message
 
 class MessageRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
-
 
     # Сохранить зашифрованное сообщение в БД
     async def create(self, chat_id : int, 
@@ -24,7 +23,6 @@ class MessageRepository:
         await self.session.flush()
         return message
 
-
     # Удаление сообщения из бд
     async def delete(self, id: int) -> bool:
         
@@ -38,7 +36,6 @@ class MessageRepository:
 
         return True 
     
-
     # Редактирование сообщения 
     async def update(self, id: int, updates : dict[str, bytes]) -> Message | None:
         message = await self.session.scalar(select(Message).where(Message.id == id))
@@ -53,13 +50,11 @@ class MessageRepository:
 
         return message
 
-
     # Получение сообщения по id 
     async def get_by_id(self, id : int) -> Optional[Message]:
         result = await self.session.get(Message, id)
 
         return result
-
 
     # Получение всех сообщений из конкретного чата
     async def get_by_chat(self, chat_id: int, limit: int = 50, offset: int = 0) -> List[Message]:

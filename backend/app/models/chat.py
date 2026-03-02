@@ -17,6 +17,7 @@ class Chat(Base):
         "polymorphic_identity": "chat"
     }
 
+
 class GroupChat(Chat):
     __tablename__ = "group_chats"
 
@@ -30,4 +31,15 @@ class GroupChat(Chat):
     __mapper_args__ = {
         "polymorphic_identity" : "group"
     }
+
+
+# Модель, объединяющая пользователей и чаты(Many to Many)
+class ChatParticipant(Base):
+    __tablename__= "chat_participants"
+
+    chat_id = Column(Integer, ForeignKey('chats.id', ondelete="CASCADE"), primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
+    joined_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    chat = relationship("Chat", back_populates="participants")
 

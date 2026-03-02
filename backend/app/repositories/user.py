@@ -42,7 +42,7 @@ class UserRepository:
 
         return user 
     
-
+    # Редактирование пользователя
     async def update_user(self, user_id : int, updates : dict) -> Optional[User]:
         
         user = await self.session.get(User, user_id)
@@ -61,6 +61,7 @@ class UserRepository:
     
         return user
     
+    # Удаление пользователя
     async def delete_user(self, user_id : int) -> bool:
         user = await self.session.get(User, user_id)
 
