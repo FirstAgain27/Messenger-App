@@ -1,0 +1,44 @@
+from pydantic import BaseModel, Field, EmailStr, ConfigDict, List
+from typing import Optional 
+from datetime import datetime 
+
+
+class ChatBase(BaseModel):
+    id : int
+    type : str
+    last_message_at : Optional[datetime]
+    created_at : datetime
+
+
+# Содержит данные, которые получаем от клиента, больше никакие другие(То, что заполняется автоматически - не пишем)
+class PrivateChatCreate(BaseModel):
+    user_id : int # ID второго участника
+
+
+# Содержит данные, которые получаем от клиента, больше никакие другие(То, что заполняется автоматически - не пишем)
+class GroupChatCreate(BaseModel):
+    name : str 
+    description : Optional[str] = None
+    avatar : Optional[str] = None 
+    participants_ids : List[int] # ID участников
+
+
+class PrivateChatOut(BaseModel):
+    pass
+
+
+class GroupChatOut(ChatBase):
+    name : str 
+    description : Optional[str]
+    avatar : Optional[str]
+    creator_id : int
+    participants_ids : List[int] 
+
+
+
+
+    
+
+
+
+
