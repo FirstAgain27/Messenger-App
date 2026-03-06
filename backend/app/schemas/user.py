@@ -11,7 +11,7 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    password_hash : str = Field(..., min_length=8, max_length=30)
+    password : str = Field(..., min_length=8, max_length=30)
 
 class UserOut(UserBase):
     id: int
