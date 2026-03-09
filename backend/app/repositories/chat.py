@@ -77,6 +77,17 @@ class ChatRepository:
         
         await self.session.flush()
         return chat
+    
+    async def is_participant(self, chat_id : int, user_id : int) -> bool:
+        return await self.session.scalar(select(ChatParticipant)
+                                         .where(ChatParticipant.chat_id == chat_id, 
+                                                ChatParticipant.user_id == user_id)) is not None 
+        
+        
+        
+        
+        
+    
         
 
 

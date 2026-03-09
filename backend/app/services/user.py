@@ -1,6 +1,5 @@
-from schemas import UserCreate, UserBase, UserUpdate, UserOut
+from schemas import UserCreate, UserUpdate, UserOut
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.core.security import CryptContext
 from typing import Optional
 
 from core.security import hash_password, verify_password
@@ -71,7 +70,12 @@ class UserService:
             return True
         return False 
 
-    
+
+        
+
+
+
+
 
 
 

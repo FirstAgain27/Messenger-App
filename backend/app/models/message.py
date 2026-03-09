@@ -16,19 +16,6 @@ class Message(Base):
     # Для файлов позже добавим
     file_id = Column(Integer, ForeignKey("files.id"), nullable=True)
 
-    @property 
-    def text(self):
-        if self.encrypted_text:
-            return cipher.decrypt(self.encrypted_text).decode()
-        return None
-    
-    @text.setter
-    def text(self, plain_text: str):
-        """Шифрует текст перед сохранением"""
-        if plain_text:
-            self.encrypted_text = cipher.encrypt(plain_text.encode())
-        else:
-            self.encrypted_text = None
         
     
 
