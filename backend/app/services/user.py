@@ -63,7 +63,15 @@ class UserService:
 
         return UserOut.model_validate(updated_user)
     
+    # Коммит изменений в БД при удалении пользователя
+    async def user_profile_delete(self, user_id : int):
+        deleted = await self.user_repo.delete_user(user_id)
+        if deleted:
+            await self.session.commit()
+            return True
+        return False 
 
+    
 
 
 
