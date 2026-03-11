@@ -52,6 +52,30 @@ class MessageService:
 
         await self.session.commit()
         return MessageOut.model_validate(updated_message)
+    
+
+    async def delete_message(self, user_id : int, message_id : int) -> bool: 
+        
+        message = await self.message_repo.get_by_id(message_id)
+
+        if message is None:
+            return False
+        
+        if datetime.now(timezone.utc) - message.created_at > timedelta(hours=12): # type: ignore
+            raise PermissionError("Нельзя удалить сообщение, отправленное больше 12 часов назад")
+        
+        if message.sender_id != user_id: # type: ignore
+            raise PermissionError("Нельзя удалять чужие сообщения")
+        
+        await self.message_repo.delete(message_id)
+        await self.session.commit()
+
+        return True
+    
+
+
+
+
 
 
 
