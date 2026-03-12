@@ -1,9 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from repositories import MessageRepository, ChatRepository
-from schemas import MessageCreate, MessageOut
-from typing import Optional
+from schemas import MessageOut
+from typing import Optional, List
 from core.security import encrypt_message
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 class MessageService:
     def __init__(self, session : AsyncSession, message_repo : MessageRepository, chat_repo : ChatRepository) -> None:
@@ -52,8 +52,9 @@ class MessageService:
 
         await self.session.commit()
         return MessageOut.model_validate(updated_message)
-    
 
+
+    # Удаление сообщения пользователя
     async def delete_message(self, user_id : int, message_id : int) -> bool: 
         
         message = await self.message_repo.get_by_id(message_id)
@@ -61,7 +62,7 @@ class MessageService:
         if message is None:
             return False
         
-        if datetime.now(timezone.utc) - message.created_at > timedelta(hours=12): # type: ignore
+        if datetime.now(timezone.utc) - message.created_at > timedelta(hours=12): #type: ignore
             raise PermissionError("Нельзя удалить сообщение, отправленное больше 12 часов назад")
         
         if message.sender_id != user_id: # type: ignore
@@ -71,6 +72,22 @@ class MessageService:
         await self.session.commit()
 
         return True
+    
+    
+    # Отображение списка сообщений для пользователя
+    async def get_chat_messages(self, user_id : int, chat_id : int, limit : int, offset : int) -> List[MessageOut]:
+        
+        if not await self.chat_repo.is_participant(chat_id, user_id):
+            raise PermissionError("Вы не являетесь участником чата")
+        
+        messages = await self.message_repo.get_by_chat(chat_id=chat_id, 
+                                                       limit=limit,
+                                                       offset=offset)
+
+        return [MessageOut.model_validate(msg) for msg in messages]
+
+
+
     
 
 
