@@ -1,4 +1,4 @@
-from typing import Optional, Set
+from typing import Optional, Set, List 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, delete
 
@@ -20,6 +20,11 @@ class UserRepository:
     async def get_by_phone(self, phone: str) -> Optional[User]:
         result = await self.session.execute(select(User).where(User.phone == phone))
         return result.scalar_one_or_none()
+    
+    async def get_existing_ids(self, ids: List[int]):
+        result = await self.session.scalars(select(User.id)
+                                            .where(User.id.in_(ids)))
+        return set(result.all())
     
     # Получение пользователя по username
     async def get_by_username(self, username: str) -> Optional[User]:

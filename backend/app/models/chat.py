@@ -11,6 +11,8 @@ class Chat(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     type = Column(String(10), nullable=False)
 
+    participants = relationship("ChatParticipant", back_populates="chat")
+
     """Если type = chat, то создаем обычный Chat"""
     __mapper_args__ = {
         "polymorphic_on": type,
@@ -40,6 +42,8 @@ class ChatParticipant(Base):
     chat_id = Column(Integer, ForeignKey('chats.id', ondelete="CASCADE"), primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
     joined_at = Column(DateTime(timezone=True), server_default=func.now())
+    deleted_by_user = Column(Boolean, default=False)
 
     chat = relationship("Chat", back_populates="participants")
+    user = relationship("User", back_populates="participant")
 

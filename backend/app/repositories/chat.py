@@ -1,4 +1,4 @@
-from typing import Optional, Set, List
+from typing import Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, case, and_
 
@@ -62,6 +62,23 @@ class ChatRepository:
         
         return False
     
+
+    async def create_group_chat(self, creator_id : int, name : str, avatar: Optional[str], participants_ids: List[int]) -> GroupChat:
+
+        group_chat = GroupChat(creator_id=creator_id,
+                               name=name,
+                               avatar=avatar)
+
+        self.session.add(group_chat)
+        await self.session.flush()
+
+        for user_id in participants_ids:
+            chat_participant = ChatParticipant(chat_id=group_chat.id, user_id=user_id)
+            self.session.add(chat_participant)
+        await self.session.flush()
+        
+        return group_chat
+
     async def update_group_chat(self, updates : dict, chat_id: int) -> Optional[GroupChat]:
 
         chat = await self.session.scalar(select(Chat).where(Chat.id == chat_id, Chat.type == "group"))
@@ -83,7 +100,8 @@ class ChatRepository:
                                          .where(ChatParticipant.chat_id == chat_id, 
                                                 ChatParticipant.user_id == user_id)) is not None 
         
-        
+    
+    
         
         
         

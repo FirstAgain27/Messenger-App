@@ -12,19 +12,20 @@ class ChatBase(BaseModel):
 
 # Содержит данные, которые получаем от клиента, больше никакие другие(То, что заполняется автоматически - не пишем)
 class PrivateChatCreate(BaseModel):
-    user_id : int # ID второго участника
+    other_user_id : int # ID второго участника
 
 
 # Содержит данные, которые получаем от клиента, больше никакие другие(То, что заполняется автоматически - не пишем)
 class GroupChatCreate(BaseModel):
     name : str 
+    creator_id : int
     description : Optional[str] = None
     avatar : Optional[str] = None 
     participants_ids : List[int] # ID участников
 
 
-class PrivateChatOut(BaseModel):
-    pass
+class PrivateChatOut(ChatBase):
+    other_user_id : int 
 
 
 class GroupChatOut(ChatBase):
