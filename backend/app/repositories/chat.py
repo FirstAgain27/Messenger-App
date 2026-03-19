@@ -63,6 +63,20 @@ class ChatRepository:
         return False
     
 
+    # Скрыть чат для пользователя (soft delete)
+    async def hide_chat_for_user(self, user_id : int, chat_id : int) -> bool:
+
+        participant = await self.session.get(ChatParticipant, (chat_id, user_id))
+
+        if not participant:
+            return False
+        participant.deleted_by_user = True
+
+        await self.session.flush()
+
+        return True
+
+
     async def create_group_chat(self, creator_id : int, name : str, avatar: Optional[str], participants_ids: List[int]) -> GroupChat:
 
         group_chat = GroupChat(creator_id=creator_id,
@@ -100,6 +114,7 @@ class ChatRepository:
                                          .where(ChatParticipant.chat_id == chat_id, 
                                                 ChatParticipant.user_id == user_id)) is not None 
         
+    
     
     
         

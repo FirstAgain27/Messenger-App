@@ -47,3 +47,5 @@ class ChatParticipant(Base):
     chat = relationship("Chat", back_populates="participants")
     user = relationship("User", back_populates="participant")
 
+
+
