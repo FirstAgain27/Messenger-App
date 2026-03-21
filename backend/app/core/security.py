@@ -22,3 +22,4 @@ def encrypt_message(text: str) -> bytes:
 def decrypt_message(token: bytes) -> str:
     """Дешифрует байты и возвращает строку."""
     return cipher.decrypt(token).decode()
+

@@ -1,6 +1,6 @@
 from typing import Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, case, and_
+from sqlalchemy import select, func, case, and_, update
 
 from app.models import Chat, GroupChat, ChatParticipant
 
@@ -52,6 +52,7 @@ class ChatRepository:
 
         return new_chat
 
+    # Безвозвратное удаление чата у обоих пользователей 
     async def delete_chat(self, chat_id : int) -> bool:
         chat = await self.session.get(Chat, chat_id)
 
@@ -77,6 +78,7 @@ class ChatRepository:
         return True
 
 
+    # Создать групповой чат
     async def create_group_chat(self, creator_id : int, name : str, avatar: Optional[str], participants_ids: List[int]) -> GroupChat:
 
         group_chat = GroupChat(creator_id=creator_id,
@@ -93,6 +95,8 @@ class ChatRepository:
         
         return group_chat
 
+
+    # Обновить групповой чат
     async def update_group_chat(self, updates : dict, chat_id: int) -> Optional[GroupChat]:
 
         chat = await self.session.scalar(select(Chat).where(Chat.id == chat_id, Chat.type == "group"))
@@ -109,10 +113,18 @@ class ChatRepository:
         await self.session.flush()
         return chat
     
+    # Проверить, является ли пользователь участником чата
     async def is_participant(self, chat_id : int, user_id : int) -> bool:
         return await self.session.scalar(select(ChatParticipant)
                                          .where(ChatParticipant.chat_id == chat_id, 
                                                 ChatParticipant.user_id == user_id)) is not None 
+    
+    # Сбрасывает флажок для удаленных чатов
+    async def unhide_chat_for_all_participants(self, chat_id : int) -> None:
+        await self.session.execute(update(ChatParticipant)
+                                   .where(ChatParticipant.chat_id==chat_id)
+                                   .values(deleted_by_user=False))
+
         
     
     

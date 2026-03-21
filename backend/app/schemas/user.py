@@ -25,7 +25,6 @@ class UserOut(UserBase):
     model_config = ConfigDict(from_attributes=True) # говорим: можно читать из атрибутов объектов.
                             #Без этой строчки FastAPI не сможет превратить объект из базы в JSON и вывалится с ошибкой.
  
-
 class UserUpdate(BaseModel):
     phone: Optional[str] = Field(None, min_length=15, max_length=15)
     username: Optional[str] = Field(None, min_length=3, max_length=33)

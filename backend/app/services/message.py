@@ -22,7 +22,7 @@ class MessageService:
         message = await self.message_repo.create(chat_id=chat_id,
                                                 sender_id=sender_id,
                                                 encrypted_content=encrypted_content)
-        
+        await self.chat_repo.unhide_chat_for_all_participants(chat_id)
         await self.session.commit()
         
         return MessageOut.model_validate(message)
