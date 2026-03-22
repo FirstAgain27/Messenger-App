@@ -30,23 +30,7 @@ class UserRepository:
     async def get_by_username(self, username: str) -> Optional[User]:
         result = await self.session.execute(select(User).where(User.username==username))
         return result.scalar_one_or_none()
-        
-    # Создание пользователя
-    async def create_user(self, username: str,
-                                first_name: str,
-                                password_hash: str,
-                                phone: str) -> User:
 
-        user = User(username=username,
-                    first_name=first_name,
-                    password_hash=password_hash,
-                    phone=phone)
-        
-        self.session.add(user)
-        await self.session.flush()
-
-        return user 
-    
     # Редактирование пользователя
     async def update_user(self, user_id : int, updates : dict) -> Optional[User]:
         

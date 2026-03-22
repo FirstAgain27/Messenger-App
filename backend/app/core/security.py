@@ -1,5 +1,7 @@
 from passlib.context import CryptContext
 from cryptography.fernet import Fernet
+import jwt
+from datetime import datetime, timedelta, timezone
 from app.core.config import settings
 
 # --- Хэширование паролей ---
@@ -22,4 +24,17 @@ def encrypt_message(text: str) -> bytes:
 def decrypt_message(token: bytes) -> str:
     """Дешифрует байты и возвращает строку."""
     return cipher.decrypt(token).decode()
+
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
+    """Создание токена для аутентификации"""
+    to_encode = data.copy()
+
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+
+    return encoded_jwt
 

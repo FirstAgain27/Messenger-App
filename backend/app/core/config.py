@@ -5,7 +5,7 @@ class Settings(BaseSettings):
     # Основные настройки
     app_name: str = "FuckRKN"
     debug: bool = False
-    secret_key: str          # обязательное поле из .env
+    SECRET_KEY : str
 
     # База данных
     database_url: str = "sqlite:///./messenger.db"
@@ -25,15 +25,15 @@ class Settings(BaseSettings):
     static_dir: str = "static"
     images_dir: str = "static/images"
 
-    # JWT (позже)
-    access_token_expire_minutes: int = 30
-    algorithm: str = "HS256"
+    # JWT 
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    ALGORITHM: str = "HS256"
 
     model_config = ConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
-        extra="ignore"   # игнорировать лишние переменные в .env
+        extra="ignore"
     )
 
 settings = Settings()
