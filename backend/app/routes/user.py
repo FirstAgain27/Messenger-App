@@ -5,12 +5,10 @@ from core.database import get_db
 from core.security import get_current_user
 from schemas.user import UserOut, UserUpdate, UserDeleteRequest
 from models.user import User
-from schemas.auth import LoginRequest, Token
 from repositories.user import UserRepository
-from services.auth import AuthService
 from services.user import UserService 
 
-router = APIRouter(prefix='/users', tags=["users"])
+router = APIRouter(prefix='/api/users', tags=["users"])
 
 # Обновление профиля пользователя  
 @router.patch("/update", response_model=UserOut)

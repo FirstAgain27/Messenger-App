@@ -36,6 +36,15 @@ class GroupChatOut(ChatBase):
     participants_ids : List[int] 
 
 
+# Схема для обоих типов чатов
+class ChatOut(BaseModel):
+    id : int 
+    type : str
+    name : str | None = None
+    avatar : str | None = None
+    last_message_at : datetime
+
+
 
 
     

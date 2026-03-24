@@ -1,8 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from schemas import PrivateChatOut, GroupChatOut
+from schemas.chat import PrivateChatOut, GroupChatOut, ChatOut
 from repositories import ChatRepository, UserRepository 
 from typing import Optional, List
-from models import User 
+from models import User, Chat 
 
 class ChatService:
     def __init__(self, session : AsyncSession, chat_repo : ChatRepository, user_repo : UserRepository) -> None:
@@ -10,6 +10,18 @@ class ChatService:
         self.chat_repo = chat_repo
         self.user_repo = user_repo
 
+    # Получение чатов пользователя
+    async def get_user_chats(self, user_id: int) -> List[ChatOut]:
+        current_user = await self.user_repo.get_by_id(user_id)
+        if not current_user:
+            raise ValueError("User not found")
+        
+        chats = await self.chat_repo.get_user_chats(user_id=user_id)
+        
+        # Возвращаем Pydantic-схемы
+        return [ChatOut.model_validate(chat) for chat in chats]
+        
+    
     # Создание личного чата между пользователями
     async def create_private_chat(self, creator_id : int, other_user_id : int) -> Optional[PrivateChatOut]:
 

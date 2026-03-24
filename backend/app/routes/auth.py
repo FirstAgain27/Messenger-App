@@ -9,7 +9,7 @@ from repositories.user import UserRepository
 from services.auth import AuthService
 
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 @router.post("/register", response_model=UserOut)
 async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
