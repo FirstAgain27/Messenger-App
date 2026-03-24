@@ -21,7 +21,6 @@ class UserOut(UserBase):
     avatar_url: Optional[str] = None
     created_at: datetime
     is_active: bool
-    
     model_config = ConfigDict(from_attributes=True) # говорим: можно читать из атрибутов объектов.
                             #Без этой строчки FastAPI не сможет превратить объект из базы в JSON и вывалится с ошибкой.
  
@@ -35,4 +34,5 @@ class UserUpdate(BaseModel):
     avatar_url: Optional[str] = None
 
 
-
+class UserDeleteRequest(BaseModel):
+    password : str = Field(..., min_length=8, max_length=30) # Вынужденное дублирование, можно поправить после реализации MVP

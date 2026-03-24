@@ -1,6 +1,7 @@
 from schemas import UserCreate, UserUpdate, UserOut
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
+from models import User
 
 from core.security import hash_password, verify_password
 
@@ -24,15 +25,26 @@ class UserService:
 
         return UserOut.model_validate(updated_user)
     
-    # Коммит изменений в БД при удалении пользователя
-    async def user_profile_delete(self, user_id : int):
+    # Удаление профиля пользователя
+    async def user_profile_delete(self, user_id: int, password: str) -> bool:
+        # 1. Получаем пользователя через репозиторий
+        user = await self.user_repo.get_by_id(user_id)
+        if not user:
+            return False
+        
+        # 2. Проверяем пароль
+        if not verify_password(password, user.password_hash):
+            return False
+        
+        # 3. Удаляем через репозиторий
         deleted = await self.user_repo.delete_user(user_id)
+        
+        # 4. Коммитим и возвращаем результат
         if deleted:
             await self.session.commit()
             return True
-        return False 
-
-
+        
+        return False
         
 
 
