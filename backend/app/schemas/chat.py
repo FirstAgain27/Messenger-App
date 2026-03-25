@@ -14,7 +14,6 @@ class ChatBase(BaseModel):
 class PrivateChatCreate(BaseModel):
     other_user_id : int # ID второго участника
 
-
 # Содержит данные, которые получаем от клиента, больше никакие другие(То, что заполняется автоматически - не пишем)
 class GroupChatCreate(BaseModel):
     name : str 

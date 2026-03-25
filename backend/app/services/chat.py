@@ -27,13 +27,12 @@ class ChatService:
 
         other_user = await self.user_repo.get_by_id(other_user_id)
         if other_user is None:
-            return None
+            raise ValueError("User not found")
         
         if creator_id == other_user_id:
-            raise PermissionError("Нельзя создать чат с самим собой")
+            raise ValueError("Cannot create chat with yourself")
         
         private_chat = await self.chat_repo.get_or_create_private(creator_id, other_user_id)
-
         await self.session.commit()
 
         return PrivateChatOut.model_validate(private_chat, update = {"other_user_id" : other_user_id}) #type: ignore 

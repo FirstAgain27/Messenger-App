@@ -4,7 +4,7 @@ from typing import List
 
 from core.database import get_db
 from core.security import get_current_user
-from schemas.chat import PrivateChatOut, GroupChatOut, ChatOut, GroupChatCreate
+from schemas.chat import PrivateChatOut, GroupChatOut, ChatOut, GroupChatCreate, PrivateChatCreate
 from repositories.chat import ChatRepository
 from repositories.user import UserRepository
 from services.chat import ChatService
@@ -34,7 +34,7 @@ async def get_chats(
     return chats
 
 
-@router.post("/create_group_chat", response_model=GroupChatOut, status_code=status.HTTP_201_CREATED)
+@router.post("/group", response_model=GroupChatOut, status_code=status.HTTP_201_CREATED)
 async def create_group_chat(
     chat_data : GroupChatCreate,
     db : AsyncSession = Depends(get_db),
@@ -57,3 +57,28 @@ async def create_group_chat(
         )
 
     return group_chat
+
+
+@router.post("/private", response_model=PrivateChatOut, status_code=status.HTTP_201_CREATED)
+async def create_private_chat(
+    chat_data : PrivateChatCreate,
+    db : AsyncSession = Depends(get_db),
+    current_user : User = Depends(get_current_user)
+):
+    chat_repo = ChatRepository(db)
+    user_repo = UserRepository(db)
+    chat_service = ChatService(db, chat_repo, user_repo)
+
+    try:
+        private_chat = await chat_service.create_private_chat(
+            creator_id=current_user.id,
+            other_user_id=chat_data.other_user_id
+            )
+        
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail = str(e)
+        )
+
+    return private_chat
