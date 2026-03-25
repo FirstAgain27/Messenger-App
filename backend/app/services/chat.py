@@ -66,7 +66,7 @@ class ChatService:
 
     # Удаление чата только для одного пользователя (soft delete)
     async def hide_chat_for_user(self, user_id: int, chat_id: int) -> bool:
-        result = await self.chat_repo.hide_chat_for_user(user_id=user_id, chat_id=chat_id)
+        result = await self.chat_repo.hide_chat_for_user(user_id=user_id, chat_id=chat_id) 
         if result:
             await self.session.commit()
         return result

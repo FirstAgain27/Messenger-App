@@ -4,7 +4,7 @@ from typing import List
 
 from core.database import get_db
 from core.security import get_current_user
-from schemas.chat import PrivateChatOut, GroupChatOut, ChatOut
+from schemas.chat import PrivateChatOut, GroupChatOut, ChatOut, GroupChatCreate
 from repositories.chat import ChatRepository
 from repositories.user import UserRepository
 from services.chat import ChatService
@@ -34,3 +34,26 @@ async def get_chats(
     return chats
 
 
+@router.post("/create_group_chat", response_model=GroupChatOut, status_code=status.HTTP_201_CREATED)
+async def create_group_chat(
+    chat_data : GroupChatCreate,
+    db : AsyncSession = Depends(get_db),
+    current_user : User = Depends(get_current_user)
+    ):
+    chat_repo = ChatRepository(db)
+    user_repo = UserRepository(db)
+    chat_service = ChatService(db, chat_repo, user_repo)
+
+    try:
+        group_chat = await chat_service.create_group_chat(creator_id=current_user.id,
+                                             name=chat_data.name,
+                                             avatar=chat_data.avatar,
+                                             participant_ids=chat_data.participants_ids
+                                             )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail = str(e)
+        )
+
+    return group_chat
