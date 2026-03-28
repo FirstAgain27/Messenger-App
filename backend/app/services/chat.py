@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from schemas.chat import PrivateChatOut, GroupChatOut, ChatOut
 from repositories import ChatRepository, UserRepository 
 from typing import Optional, List
-from models import User, Chat 
+from models import User, Chat, GroupChat
 
 class ChatService:
     def __init__(self, session : AsyncSession, chat_repo : ChatRepository, user_repo : UserRepository) -> None:
@@ -70,9 +70,25 @@ class ChatService:
             await self.session.commit()
         return result
 
-    
+    # Удаление группового чата создателем
+    async def delete_the_group_by_creator(self, user_id : int, chat_id : int) -> bool:
+        chat = await self.chat_repo.get_by_id(chat_id=chat_id)
 
-
+        # Проверка существования chat
+        if chat is None:
+            raise ValueError("Chat not found")
+        # Проверяем является ли пользователь создателем
+        if chat.creator_id != user_id:
+            raise PermissionError("Only creator can delete group chat")
+        # Проверяем является ли чат групповым
+        if not isinstance(chat, GroupChat):
+            raise ValueError("Not a group chat")
+        
+        deleted = await self.chat_repo.delete_chat(chat_id=chat_id)
+        if deleted:
+            await self.session.commit()
+        return deleted
+        
 
     
 

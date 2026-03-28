@@ -64,7 +64,7 @@ async def create_private_chat(
     chat_data : PrivateChatCreate,
     db : AsyncSession = Depends(get_db),
     current_user : User = Depends(get_current_user)
-):
+    ):
     chat_repo = ChatRepository(db)
     user_repo = UserRepository(db)
     chat_service = ChatService(db, chat_repo, user_repo)
@@ -82,3 +82,56 @@ async def create_private_chat(
         )
 
     return private_chat
+
+
+@router.delete("/{chat_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_chat(
+    chat_id : int,
+    db : AsyncSession = Depends(get_db),
+    current_user : User = Depends(get_current_user)
+    ):
+    chat_repo = ChatRepository(db)
+    user_repo = UserRepository(db)
+    chat_service = ChatService(db, chat_repo, user_repo)
+
+    success = await chat_service.hide_chat_for_user(user_id=current_user.id,
+                                                    chat_id=chat_id)
+    
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Chat not found or you are not a participant"
+        )
+    
+    return None
+
+
+@router.delete("/group/{chat_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_group_chat(
+    chat_id : int,
+    db : AsyncSession = Depends(get_db),
+    current_user : User = Depends(get_current_user)
+    ):
+
+    chat_repo = ChatRepository(db)
+    user_repo = UserRepository(db)
+    chat_service = ChatService(db, chat_repo, user_repo)
+
+
+    success = await chat_service.delete_the_group_by_creator(user_id=current_user.id,
+                                                    chat_id=chat_id)
+    
+    try:
+        success = await chat_service.delete_the_group_by_creator(
+            user_id=current_user.id,
+            chat_id=chat_id
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+
+    if not success:
+        raise HTTPException(status_code=404, detail="Chat not found")
+
+    return None
