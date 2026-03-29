@@ -9,7 +9,6 @@ class ChatBase(BaseModel):
     last_message_at : Optional[datetime]
     created_at : datetime
 
-
 # Содержит данные, которые получаем от клиента, больше никакие другие(То, что заполняется автоматически - не пишем)
 class PrivateChatCreate(BaseModel):
     other_user_id : int # ID второго участника
@@ -44,6 +43,13 @@ class ChatOut(BaseModel):
     name : str | None = None
     avatar : str | None = None
     last_message_at : datetime
+
+class GroupChatUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=50)
+    avatar: Optional[str] = None
+    description: Optional[str] = Field(None, min_length=2, max_length=300)
+    
+
 
 
 

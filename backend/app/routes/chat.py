@@ -4,7 +4,12 @@ from typing import List
 
 from core.database import get_db
 from core.security import get_current_user
-from schemas.chat import PrivateChatOut, GroupChatOut, ChatOut, GroupChatCreate, PrivateChatCreate
+from schemas.chat import (PrivateChatOut, 
+                          GroupChatOut, 
+                          ChatOut, 
+                          GroupChatCreate, 
+                          PrivateChatCreate, 
+                          GroupChatUpdate)
 from repositories.chat import ChatRepository
 from repositories.user import UserRepository
 from services.chat import ChatService
@@ -137,7 +142,33 @@ async def delete_group_chat(
 
     return None
 
-# Частичное обновление чата 
-@router.patch("/{chat_id}", response_model = GroupChatOut, status_code=status.HTTP_200_OK)
-async def update_group_chat(user_id : int,
-                            ): 
+@router.patch("/{chat_id}", response_model=GroupChatOut)
+async def update_group_chat(
+    chat_id: int,
+    # Используем схему вместо dict
+    update_data: GroupChatUpdate, 
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+    ): 
+    # Включаем только те поля, которые пользователь реально прислал
+    updates = update_data.model_dump(exclude_unset=True)
+    
+    if not updates:
+        raise HTTPException(status_code=400, detail="No fields provided for update")
+
+    chat_service = ChatService(db, ChatRepository(db), UserRepository(db))
+
+    try:
+        updated = await chat_service.update_group_chat(
+            user_id=current_user.id,
+            chat_id=chat_id,
+            updates=updates
+        )
+    except ValueError as e:
+        # Если чат не найден — 404, если данные плохие — 400
+        status_code = 404 if "not found" in str(e).lower() else 400
+        raise HTTPException(status_code=status_code, detail=str(e))
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    
+    return updated
