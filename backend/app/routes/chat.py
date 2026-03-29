@@ -33,7 +33,7 @@ async def get_chats(
 
     return chats
 
-
+# Создание группового чата
 @router.post("/group", response_model=GroupChatOut, status_code=status.HTTP_201_CREATED)
 async def create_group_chat(
     chat_data : GroupChatCreate,
@@ -58,7 +58,7 @@ async def create_group_chat(
 
     return group_chat
 
-
+# Создание личного чата
 @router.post("/private", response_model=PrivateChatOut, status_code=status.HTTP_201_CREATED)
 async def create_private_chat(
     chat_data : PrivateChatCreate,
@@ -84,6 +84,7 @@ async def create_private_chat(
     return private_chat
 
 
+# Мягкое удаление чата пользователем 
 @router.delete("/{chat_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_chat(
     chat_id : int,
@@ -106,6 +107,7 @@ async def delete_chat(
     return None
 
 
+# Удаление группового чата
 @router.delete("/group/{chat_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_group_chat(
     chat_id : int,
@@ -116,7 +118,6 @@ async def delete_group_chat(
     chat_repo = ChatRepository(db)
     user_repo = UserRepository(db)
     chat_service = ChatService(db, chat_repo, user_repo)
-
 
     success = await chat_service.delete_the_group_by_creator(user_id=current_user.id,
                                                     chat_id=chat_id)
@@ -135,3 +136,8 @@ async def delete_group_chat(
         raise HTTPException(status_code=404, detail="Chat not found")
 
     return None
+
+# Частичное обновление чата 
+@router.patch("/{chat_id}", response_model = GroupChatOut, status_code=status.HTTP_200_OK)
+async def update_group_chat(user_id : int,
+                            ): 

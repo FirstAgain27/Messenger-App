@@ -16,11 +16,13 @@ class PrivateChatCreate(BaseModel):
 
 # Содержит данные, которые получаем от клиента, больше никакие другие(То, что заполняется автоматически - не пишем)
 class GroupChatCreate(BaseModel):
+    model_config = ConfigDict(from_attributes=True )
+
     name : str 
     creator_id : int
     description : Optional[str] = None
     avatar : Optional[str] = None 
-    participants_ids : List[int] # ID участников
+    participants_ids : list[int] # ID участников
 
 
 class PrivateChatOut(ChatBase):
@@ -32,7 +34,7 @@ class GroupChatOut(ChatBase):
     description : Optional[str]
     avatar : Optional[str]
     creator_id : int
-    participants_ids : List[int] 
+    participants_ids : list[int] 
 
 
 # Схема для обоих типов чатов

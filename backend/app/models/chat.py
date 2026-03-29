@@ -1,6 +1,6 @@
-from sqlalchemy import Column, Integer, Boolean, String, Text, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, Text, Boolean, String, DateTime, ForeignKey
 from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, Mapped, mapped_column
 from ..core.database import Base 
 
 class Chat(Base):
@@ -22,12 +22,11 @@ class Chat(Base):
 
 class GroupChat(Chat):
     __tablename__ = "group_chats"
-
-    id = Column(Integer, ForeignKey("chats.id"), primary_key=True)
-    name = Column(String(100), nullable=False)
-    description = Column(Text, nullable=True)
-    avatar = Column(String, nullable=True)
-    creator_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    id: Mapped[int] = mapped_column(ForeignKey("chats.id"), primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    avatar: Mapped[str | None] = mapped_column(String, nullable=True)
+    creator_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
 
     """Если type = group, то создаем GroupChat, а не просто Chat"""
     __mapper_args__ = {

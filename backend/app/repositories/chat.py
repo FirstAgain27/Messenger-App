@@ -97,7 +97,7 @@ class ChatRepository:
 
 
     # Обновить групповой чат
-    async def update_group_chat(self, updates : dict, chat_id: int) -> Optional[GroupChat]:
+    async def update_group_chat(self, updates: dict, chat_id: int) -> Optional[GroupChat]:
 
         chat = await self.session.scalar(select(Chat).where(Chat.id == chat_id, Chat.type == "group"))
 

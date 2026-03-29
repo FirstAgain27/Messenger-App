@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, Boolean, String, Text, DateTime, LargeBi
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from ..core.database import Base
-from ..core.database import cipher
+
 
 class Message(Base):
     __tablename__ = "messages"

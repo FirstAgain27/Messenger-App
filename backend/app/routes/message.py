@@ -10,5 +10,3 @@ from services.user import UserService
 
 
 router = APIRouter(prefix='/api/messages')
-
-@

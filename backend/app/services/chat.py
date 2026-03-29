@@ -2,14 +2,29 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from schemas.chat import PrivateChatOut, GroupChatOut, ChatOut
 from repositories import ChatRepository, UserRepository 
 from typing import Optional, List
-from models import User, Chat, GroupChat
+from models import GroupChat
 
 class ChatService:
-    def __init__(self, session : AsyncSession, chat_repo : ChatRepository, user_repo : UserRepository) -> None:
+    def __init__(self, session: AsyncSession, chat_repo: ChatRepository, user_repo: UserRepository) -> None:
         self.session = session
         self.chat_repo = chat_repo
         self.user_repo = user_repo
 
+    # Приватный метод для проверки группового чата
+    async def _validate_group_chat(self, chat_id: int, user_id: int):
+        chat = await self.chat_repo.get_by_id(chat_id)
+        # Проверка существования чата 
+        if chat is None:
+            raise ValueError("Chat not found")
+        # Проверка соответствия типа чата
+        if not isinstance(chat, GroupChat):
+            raise ValueError("Not a group chat")
+        # Проверка соответствия id пользователя и id создателя чата
+        if chat.creator_id != user_id: 
+            raise PermissionError("Only creator can modify this group chat")
+        return chat
+
+        
     # Получение чатов пользователя
     async def get_user_chats(self, user_id: int) -> List[ChatOut]:
         current_user = await self.user_repo.get_by_id(user_id)
@@ -23,7 +38,7 @@ class ChatService:
         
     
     # Создание личного чата между пользователями
-    async def create_private_chat(self, creator_id : int, other_user_id : int) -> Optional[PrivateChatOut]:
+    async def create_private_chat(self, creator_id: int, other_user_id: int) -> Optional[PrivateChatOut]:
 
         other_user = await self.user_repo.get_by_id(other_user_id)
         if other_user is None:
@@ -39,7 +54,7 @@ class ChatService:
 
 
     # Создание группового чата 
-    async def create_group_chat(self, creator_id : int, name : str, avatar : Optional[str], participant_ids : List[int]) -> GroupChatOut:
+    async def create_group_chat(self, creator_id: int, name: str, avatar: Optional[str], participant_ids: List[int]) -> GroupChatOut:
 
         """ Делаем id уникальными, выкидываем дубляжи и формируем список из приведенных к нужному формату id(Без повторений)"""
         unique_participants = set(participant_ids)
@@ -60,7 +75,9 @@ class ChatService:
 
         await self.session.commit()
 
-        return GroupChatOut.model_validate(group_chat, update={"participants_ids" : normalized_ids})
+        chat_dto = GroupChatOut.model_validate(group_chat)
+        # Возвращаем Data Transfer Object с полем participants_ids
+        return chat_dto.model_copy(update={"participants_ids" : normalized_ids})
 
 
     # Удаление чата только для одного пользователя (soft delete)
@@ -70,27 +87,39 @@ class ChatService:
             await self.session.commit()
         return result
 
-    # Удаление группового чата создателем
-    async def delete_the_group_by_creator(self, user_id : int, chat_id : int) -> bool:
-        chat = await self.chat_repo.get_by_id(chat_id=chat_id)
 
-        # Проверка существования chat
-        if chat is None:
-            raise ValueError("Chat not found")
-        # Проверяем является ли пользователь создателем
-        if chat.creator_id != user_id:
-            raise PermissionError("Only creator can delete group chat")
-        # Проверяем является ли чат групповым
-        if not isinstance(chat, GroupChat):
-            raise ValueError("Not a group chat")
-        
+    # Удаление группового чата создателем
+    async def delete_the_group_by_creator(self, user_id: int, chat_id: int) -> bool:
+        # Вызываем проверки
+        await self._validate_group_chat(chat_id, user_id)
+    
         deleted = await self.chat_repo.delete_chat(chat_id=chat_id)
         if deleted:
             await self.session.commit()
         return deleted
         
-
     
+    # Частичное обновление группового чата
+    async def update_group_chat(self, user_id: int, chat_id: int, updates: dict) -> Optional[GroupChatOut]:
+        # Проверяем права (существует ли чат и является ли пользователь участником/админом)
+        await self._validate_group_chat(chat_id, user_id)
+
+        # Обновляем данные в репозитории
+        updated_chat = await self.chat_repo.update_group_chat(updates=updates, chat_id=chat_id)
+        if not updated_chat:
+            return None
+        
+        # Сохраняем транзакцию
+        await self.session.commit()
+
+        return GroupChatOut.model_validate(updated_chat)
+    
+
+
+        
+
+
+
 
 
             
