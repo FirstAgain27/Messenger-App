@@ -12,7 +12,7 @@ class MessageService:
         self.chat_repo = chat_repo
 
     # Отправить сообщение
-    async def send_message(self, sender_id : int, chat_id : int, text : str) -> MessageOut:
+    async def send_message(self, sender_id: int, chat_id: int, text: str) -> MessageOut:
 
         if not await self.chat_repo.is_participant(chat_id, sender_id):
             raise PermissionError("Вы не являетесь участником чата")
@@ -29,7 +29,7 @@ class MessageService:
     
 
     # Редактирование сообщений пользователя
-    async def edit_message(self, user_id : int, message_id : int, new_text : str) -> Optional[MessageOut]:
+    async def edit_message(self, user_id: int, message_id: int, new_text: str) -> Optional[MessageOut]:
         message = await self.message_repo.get_by_id(message_id)
 
         if not message:
@@ -55,7 +55,7 @@ class MessageService:
 
 
     # Удаление сообщения пользователя
-    async def delete_message(self, user_id : int, message_id : int) -> bool: 
+    async def delete_message(self, user_id: int, message_id: int) -> bool: 
         
         message = await self.message_repo.get_by_id(message_id)
 
@@ -74,8 +74,8 @@ class MessageService:
         return True
     
     
-    # Отображение списка сообщений для пользователя
-    async def get_chat_messages(self, user_id : int, chat_id : int, limit : int, offset : int) -> List[MessageOut]:
+    # Получение истории чата
+    async def get_chat_history(self, user_id: int, chat_id: int, limit: int, offset: int) -> List[MessageOut]:
         
         if not await self.chat_repo.is_participant(chat_id, user_id):
             raise PermissionError("Вы не являетесь участником чата")

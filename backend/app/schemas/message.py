@@ -1,23 +1,27 @@
-from pydantic import BaseModel, Field, EmailStr, ConfigDict
-from typing import Optional 
-from datetime import datetime 
+from pydantic import BaseModel, Field, ConfigDict
+from typing import Optional
+from datetime import datetime
 
-class MessageBase(BaseModel):
-    text : str = Field(..., min_length=1, description="Текст сообщения")
-    file_id : int | None = Field(None, description="ID прикрепленного файла")
+# Схема для ВХОДА (что присылает юзер)
+class MessageCreate(BaseModel):
+    chat_id: int = Field(..., description="ID чата, куда отправляем")
+    text: str = Field(..., min_length=1, max_length=4096, description="Текст сообщения")
+    file_id: Optional[int] = Field(None, description="ID файла, если есть")
 
-class MessageCreate(MessageBase):
-    pass
+# Схема для ОБНОВЛЕНИЯ (PATCH)
+class MessageUpdate(BaseModel):
+    text: str = Field(..., min_length=1, max_length=4096)
 
-
-"""Определяет поля, которые будут возвращаться пользователю при любом запросе к серверу
-по эндпоинту, связанному с Message
-"""
-class MessageOut(MessageBase):
+# Схема для ВЫХОДА (что отдает API)
+class MessageOut(BaseModel):
     id: int
     chat_id: int
     sender_id: int
+    text: str
+    file_id: Optional[int]
     created_at: datetime
-
+    # Поля, которых нет на входе, но есть в БД
+    is_edited: bool = False
+    
     model_config = ConfigDict(from_attributes=True)
 
