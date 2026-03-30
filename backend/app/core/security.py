@@ -1,11 +1,11 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Query
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 from passlib.context import CryptContext
 from cryptography.fernet import Fernet
-import jwt
-from jwt.exceptions import PyJWTError
+from jose import jwt, JWTError
 from datetime import datetime, timezone, timedelta
+from fastapi import WebSocket
 
 from core.config import settings
 from core.database import get_db
@@ -54,6 +54,7 @@ async def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: AsyncSession = Depends(get_db)
 ) -> User:
+    
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Реквизиты для входа неверны",
@@ -69,7 +70,7 @@ async def get_current_user(
         user_id: str = payload.get("sub")
         if user_id is None:
             raise credentials_exception
-    except PyJWTError:
+    except JWTError:
         raise credentials_exception
     
     user_repo = UserRepository(db)
@@ -79,3 +80,34 @@ async def get_current_user(
     
     return user
 
+
+async def get_current_user_ws(websocket: WebSocket, token: str = Query(None)):
+    # 1. Проверяем, пришел ли токен вообще
+    if token is None:
+        # Если токена нет, закрываем сокет с кодом "Нарушение политики"
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return None
+
+    try:
+        # 2. Декодируем токен вручную
+        # Мы используем ту же библиотеку jose, что и в обычном коде
+        payload = jwt.decode(
+            token, 
+            settings.SECRET_KEY, 
+            algorithms=[settings.ALGORITHM]
+        )
+        
+        # 3. Извлекаем user_id (обычно он хранится в поле "sub")
+        user_id: str = payload.get("sub")
+        
+        if user_id is None:
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+            return None
+            
+        # Возвращаем ID как целое число
+        return int(user_id)
+
+    except (JWTError, ValueError):
+        # Если токен подделан, просрочен или ID — не число
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return None

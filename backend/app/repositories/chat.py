@@ -22,7 +22,6 @@ class ChatRepository:
         
         return result.scalars().all()
     
-
     # Поиск чата и его создание в случае отсутствия
     async def get_or_create_private(self, user1_id: int, user2_id: int) -> Chat:
 
@@ -62,7 +61,6 @@ class ChatRepository:
             return True
         
         return False
-    
 
     # Скрыть чат для пользователя (soft delete)
     async def hide_chat_for_user(self, user_id : int, chat_id : int) -> bool:
@@ -103,7 +101,6 @@ class ChatRepository:
         await self.session.flush()
         
         return group_chat
-
 
     # Обновить групповой чат
     async def update_group_chat(self, updates: dict, chat_id: int) -> Optional[GroupChat]:
