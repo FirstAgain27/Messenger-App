@@ -1,20 +1,43 @@
-from sqlalchemy import Column, Integer, Boolean, String, Text, DateTime, LargeBinary, ForeignKey
-from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
-from ..core.database import Base
+from datetime import datetime
+from typing import Optional
+from sqlalchemy import ForeignKey, LargeBinary, DateTime, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from models import Chat, User
 
+from core.database import Base
 
 class Message(Base):
     __tablename__ = "messages"
     
-    id = Column(Integer, primary_key=True, index=True)
-    chat_id = Column(Integer, ForeignKey("chats.id", ondelete="CASCADE"), nullable=False)
-    sender_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    # Храним зашифрованный текст
-    encrypted_text = Column(LargeBinary, nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    # Для файлов позже добавим
-    file_id = Column(Integer, ForeignKey("files.id"), nullable=True)
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    chat_id: Mapped[int] = mapped_column(
+        ForeignKey("chats.id", ondelete="CASCADE"), 
+        nullable=False
+    )
+    sender_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id"), 
+        nullable=False
+    )
+    
+    # Храним зашифрованный текст (bytes для Fernet)
+    encrypted_text: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    
+    # Автоматическое время создания
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), 
+        server_default=func.now()
+    )
+    
+    # Поле для файлов (опциональное)
+    file_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("files.id"), 
+        nullable=True
+    )
+
+    # Рекомендую сразу добавить отношения (Relationships), 
+    # чтобы в коде можно было писать message.sender.username
+    sender: Mapped["User"] = relationship("User", back_populates="messages")
+    chat: Mapped["Chat"] = relationship("Chat", back_populates="messages")
 
         
     

@@ -38,11 +38,11 @@ class GroupChat(Chat):
 class ChatParticipant(Base):
     __tablename__= "chat_participants"
 
-    chat_id = Column(Integer, ForeignKey('chats.id', ondelete="CASCADE"), primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
-    joined_at = Column(DateTime(timezone=True), server_default=func.now())
-    deleted_by_user = Column(Boolean, default=False)
-
+    chat_id: Mapped[int] = mapped_column(Integer, ForeignKey('chats.id', ondelete="CASCADE"), primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'), primary_key=True)
+    joined_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    deleted_by_user: Mapped[bool] = mapped_column(Boolean, default=False)
+ 
     chat = relationship("Chat", back_populates="participants")
     user = relationship("User", back_populates="participant")
 

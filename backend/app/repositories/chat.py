@@ -76,7 +76,16 @@ class ChatRepository:
         await self.session.flush()
 
         return True
-
+    
+    # Получить список ID всех участников чата
+    async def get_participant_ids(self, chat_id: int) -> List[int]:
+        """Возвращает список ID всех пользователей, состоящих в чате"""
+        result = await self.session.execute(
+            select(ChatParticipant.user_id)
+            .where(ChatParticipant.chat_id == chat_id)
+        )
+        # .scalars() превращает результат в плоский список значений (наши ID)
+        return list(result.scalars().all())
 
     # Создать групповой чат
     async def create_group_chat(self, creator_id : int, name : str, avatar: Optional[str], participants_ids: List[int]) -> GroupChat:
