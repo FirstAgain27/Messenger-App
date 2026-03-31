@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, WebSocket, WebSocketDisconnect
 from sqlalchemy.ext.asyncio import AsyncSession
 from core.database import get_db
-from core.security import get_current_user
+from core.security import get_current_user, get_current_user_ws
+from core.websockets import manager 
 from models import User
-
 
 from services.message import MessageService
 from schemas import MessageOut, MessageCreate
@@ -14,6 +14,32 @@ router = APIRouter(prefix='/api/messages', tags=['messages'])
 # Зависимость для получения сервиса
 async def get_message_service(db: AsyncSession = Depends(get_db)):
     return MessageService(db, MessageRepository(db), ChatRepository(db))
+
+# Подключение websocket
+@router.websocket("/ws/{user_id}")
+async def websocket_endpoint(
+    websocket: WebSocket,
+    user_id: int,
+    token_user_id: int = Depends(get_current_user_ws)
+):
+    # Проверяем соответствие user_id в токене с полученным user_id
+    if token_user_id != user_id:
+        await websocket.close(code=1008)
+        return 
+    
+    await manager.connect(user_id, websocket)
+
+    try:
+        while True:
+            # Заготовка на будущее, чтобы сохранять то, что прислал клиент
+            data = await websocket.receive_text()
+
+    # Срабатывает, когда клиент сам разорвал связь 
+    except WebSocketDisconnect:
+        manager.disconnect(user_id, websocket)
+    # Страховка на случай других непредвиденных ошибок
+    except Exception:
+        manager.disconnect(user_id, websocket)
 
 # Отправка сообщения
 @router.post("/", response_model=MessageOut)

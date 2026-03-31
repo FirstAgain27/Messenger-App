@@ -12,7 +12,7 @@ class ConnectionManager:
             self.active_connections[user_id] = [] 
         self.active_connections[user_id].append(websocket)
 
-    async def disconnect(self, user_id: int, websocket: WebSocket):
+    def disconnect(self, user_id: int, websocket: WebSocket):
         if user_id in self.active_connections:
             self.active_connections[user_id].remove(websocket)
             # Если у пользователя больше нет открытых сокетов, удаляем ключ
