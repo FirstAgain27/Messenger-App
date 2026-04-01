@@ -1,9 +1,10 @@
 from sqlalchemy import Boolean, String, Text, DateTime
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from sqlalchemy.sql import func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from ..core.database import Base
+from app.core.database import Base
+
 
 class User(Base):
     __tablename__ = "users"
@@ -28,6 +29,7 @@ class User(Base):
     last_online_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
 
     participant = relationship("ChatParticipant", back_populates="user")
+    messages: Mapped[List['Message']] = relationship("Message", back_populates="sender")
 
     def __repr__(self):
         return f"<User(id={self.id}, name='{self.username}')>"

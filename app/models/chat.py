@@ -1,7 +1,8 @@
 from sqlalchemy import Column, Integer, Text, Boolean, String, DateTime, ForeignKey
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship, Mapped, mapped_column
-from ..core.database import Base 
+from app.core.database import Base
+from typing import List
 
 class Chat(Base):
     __tablename__= "chats"
@@ -12,7 +13,7 @@ class Chat(Base):
     type = Column(String(10), nullable=False)
 
     participants = relationship("ChatParticipant", back_populates="chat")
-
+    messages: Mapped[List["Message"]] = relationship("Message", back_populates="chat")
     """Если type = chat, то создаем обычный Chat"""
     __mapper_args__ = {
         "polymorphic_on": type,
@@ -26,7 +27,7 @@ class GroupChat(Chat):
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     avatar: Mapped[str | None] = mapped_column(String, nullable=True)
-    creator_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
+    creator_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
 
     """Если type = group, то создаем GroupChat, а не просто Chat"""
     __mapper_args__ = {

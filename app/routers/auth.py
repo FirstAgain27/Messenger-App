@@ -1,17 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.database import get_db
-from core.security import create_access_token
-from schemas.user import UserOut, UserCreate
-from schemas.auth import LoginRequest, Token
-from repositories.user import UserRepository
-from services.auth import AuthService
+from app.core.database import get_db
+from app.core.security import create_access_token
+from app.schemas.user import UserOut, UserCreate
+from app.schemas.auth import LoginRequest, Token
+from app.repositories.user import UserRepository
+from app.services.auth import AuthService
 
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
-@router.post("/register", response_model=UserOut)
+@router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
 
     # 1.Создаем вручную репозиторий и сервис

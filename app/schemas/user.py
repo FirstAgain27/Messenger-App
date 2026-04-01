@@ -4,7 +4,7 @@ from datetime import datetime
 
 # Определяет правила создания объекта класса User
 class UserBase(BaseModel):
-    phone : str = Field(..., max_length=15, min_length=15, 
+    phone : str = Field(..., min_length=12, max_length=15, 
                         description="Номер телефона")
     username : str = Field(..., max_length=33, min_length=3)
     first_name : str = Field(..., min_length=2, max_length=25)

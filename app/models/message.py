@@ -2,9 +2,10 @@ from datetime import datetime
 from typing import Optional
 from sqlalchemy import ForeignKey, LargeBinary, DateTime, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from models import Chat, User
+from app.models.chat import Chat
+from app.models.user import User
 
-from core.database import Base
+from app.core.database import Base
 
 class Message(Base):
     __tablename__ = "messages"
@@ -28,14 +29,6 @@ class Message(Base):
         server_default=func.now()
     )
     
-    # Поле для файлов (опциональное)
-    file_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey("files.id"), 
-        nullable=True
-    )
-
-    # Рекомендую сразу добавить отношения (Relationships), 
-    # чтобы в коде можно было писать message.sender.username
     sender: Mapped["User"] = relationship("User", back_populates="messages")
     chat: Mapped["Chat"] = relationship("Chat", back_populates="messages")
 

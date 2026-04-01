@@ -7,14 +7,14 @@ from jose import jwt, JWTError
 from datetime import datetime, timezone, timedelta
 from fastapi import WebSocket
 
-from core.config import settings
-from core.database import get_db
-from models.user import User
-from repositories.user import UserRepository
+from app.core.config import settings
+from app.core.database import get_db
+from app.models.user import User
+from app.repositories.user import UserRepository
 
 
 # --- Хэширование паролей ---
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)

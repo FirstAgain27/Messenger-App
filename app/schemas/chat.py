@@ -1,6 +1,7 @@
-from pydantic import BaseModel, Field, EmailStr, ConfigDict, List
-from typing import Optional 
+from pydantic import BaseModel, Field, ConfigDict
+from typing import Optional
 from datetime import datetime 
+
 
 
 class ChatBase(BaseModel):

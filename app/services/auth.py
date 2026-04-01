@@ -1,9 +1,9 @@
-from schemas import UserCreate, UserUpdate, UserOut
+from app.schemas.user import UserCreate, UserOut
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 
-from core.security import hash_password, verify_password
-from repositories import UserRepository 
+from app.core.security import hash_password, verify_password
+from app.repositories import UserRepository 
 
 
 class AuthService:
@@ -48,3 +48,5 @@ class AuthService:
             return None
         
         return UserOut.model_validate(user)
+    
+    
