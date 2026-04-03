@@ -1,8 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from schemas.chat import PrivateChatOut, GroupChatOut, ChatOut
-from repositories import ChatRepository, UserRepository 
+from app.schemas.chat import PrivateChatOut, GroupChatOut, ChatOut
+from app.repositories import ChatRepository, UserRepository 
 from typing import Optional, List
-from models import GroupChat
+from app.models import GroupChat
 
 class ChatService:
     def __init__(self, session: AsyncSession, chat_repo: ChatRepository, user_repo: UserRepository) -> None:

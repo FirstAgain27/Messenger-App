@@ -2,18 +2,18 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
-from core.database import get_db
-from core.security import get_current_user
-from schemas.chat import (PrivateChatOut, 
+from app.core.database import get_db
+from app.core.security import get_current_user
+from app.schemas.chat import (PrivateChatOut, 
                           GroupChatOut, 
                           ChatOut, 
                           GroupChatCreate, 
                           PrivateChatCreate, 
                           GroupChatUpdate)
-from repositories.chat import ChatRepository
-from repositories.user import UserRepository
-from services.chat import ChatService
-from models import User
+from app.repositories.chat import ChatRepository
+from app.repositories.user import UserRepository
+from app.services.chat import ChatService
+from app.models import User
 
 router = APIRouter(prefix='/api/chats', tags=["chats"])
 

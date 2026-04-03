@@ -2,11 +2,11 @@ from datetime import datetime, timezone, timedelta
 from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from repositories.message import MessageRepository
-from repositories.chat import ChatRepository
-from schemas.message import MessageOut
-from core.security import encrypt_message
-from core.websockets import manager # Наш синглтон-менеджер
+from app.repositories.message import MessageRepository
+from app.repositories.chat import ChatRepository
+from app.schemas.message import MessageOut
+from app.core.security import encrypt_message
+from app.core.websockets import manager # Наш синглтон-менеджер
 
 
 class MessageService:

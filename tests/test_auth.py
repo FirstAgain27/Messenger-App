@@ -103,3 +103,5 @@ async def test_login_nonexistent_phone(setup_db, ac: AsyncClient):
     }
     response = await ac.post("/api/auth/login", json=login_data)
     assert response.status_code == 401
+
+    

@@ -1,11 +1,11 @@
-from schemas import UserCreate, UserUpdate, UserOut
+from app.schemas import UserCreate, UserUpdate, UserOut
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
-from models import User
+from app.models import User
 
-from core.security import hash_password, verify_password
+from app.core.security import hash_password, verify_password
 
-from repositories import UserRepository 
+from app.repositories import UserRepository 
 
 class UserService:
     def __init__(self, session : AsyncSession, user_repo: UserRepository) -> None:
@@ -13,17 +13,20 @@ class UserService:
         self.user_repo = user_repo
         
     # Обновление профиля пользователя
-    async def user_profile_update(self, user_id : int, user_data : UserUpdate) -> Optional[UserOut]:
-        # Берет в словарь только те поля, которые были переданы
-        updates : dict = user_data.model_dump(exclude_unset=True)
+    async def user_profile_update(self, user_id: int, user_data: UserUpdate) -> User:
+        # Если передан телефон, проверяем, не занят ли он другим пользователем
+        if user_data.phone is not None:
+            existing_user = await self.user_repo.get_by_phone(user_data.phone)
+            if existing_user and existing_user.id != user_id:
+                raise ValueError("Phone already exists")
 
+        # Остальная логика обновления
+        updates = user_data.model_dump(exclude_unset=True)
         updated_user = await self.user_repo.update_user(user_id, updates)
-        if not updated_user:
-            return None
-
+        if updated_user is None:
+            raise ValueError("User not found")
         await self.session.commit()
-
-        return UserOut.model_validate(updated_user)
+        return updated_user
     
     # Удаление профиля пользователя
     async def user_profile_delete(self, user_id: int, password: str) -> bool:
