@@ -9,14 +9,12 @@ class MessageRepository:
         self.session = session
 
     # Сохранить зашифрованное сообщение в БД
-    async def create(self, chat_id: int, 
-                           sender_id: int, 
-                           encrypted_content: bytes) -> Message:
-        
-        message = Message(chat_id=chat_id,
-                          sender_id=sender_id,
-                          encrypted_content=encrypted_content)
-        
+    async def create(self, chat_id: int, sender_id: int, encrypted_content: bytes) -> Message:
+        message = Message(
+            chat_id=chat_id,
+            sender_id=sender_id,
+            encrypted_text=encrypted_content 
+        )
         self.session.add(message)
         await self.session.flush()
         return message

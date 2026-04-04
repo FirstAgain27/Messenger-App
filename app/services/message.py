@@ -29,6 +29,10 @@ class MessageService:
 
     # Отправить сообщение
     async def send_message(self, sender_id: int, chat_id: int, text: str) -> MessageOut:
+        chat = await self.chat_repo.get_by_id(chat_id)
+
+        if not chat:
+            raise ValueError("Chat not found")
         if not await self.chat_repo.is_participant(chat_id, sender_id):
             raise PermissionError("Вы не являетесь участником чата")
         
@@ -44,7 +48,13 @@ class MessageService:
         await self.session.commit()
         await self.session.refresh(message)
         
-        result = MessageOut.model_validate(message)
+        result = MessageOut(
+            id=message.id,
+            chat_id=message.chat_id,
+            sender_id=message.sender_id,
+            text=text,
+            created_at=message.created_at
+        )
 
         # Уведомляем остальных о новом сообщении
         await self._notify_participants(
@@ -72,7 +82,6 @@ class MessageService:
         if message.sender_id != user_id:
             raise PermissionError("Нельзя редактировать чужие сообщения")
         
-        # Запоминаем chat_id СЕЙЧАС, пока объект точно существует
         current_chat_id = message.chat_id 
         
         if datetime.now(timezone.utc) - message.created_at.replace(tzinfo=timezone.utc) > timedelta(hours=12):
@@ -112,8 +121,8 @@ class MessageService:
         message = await self.message_repo.get_by_id(message_id)
 
         # 1. Сначала строгая проверка на существование
-        if message is None:
-            return False
+        if not message:
+            raise ValueError("Message not found")
         
         # Теперь Pylance знает, что здесь message — это точно объект Message, а не None
         if message.sender_id != user_id:
@@ -135,7 +144,7 @@ class MessageService:
 
         return True
     
-    # Получение истории чата (WS здесь не нужен, это обычный HTTP GET)
+    # Получение истории чата
     async def get_chat_history(self, user_id: int, chat_id: int, limit: int, offset: int) -> List[MessageOut]:
         if not await self.chat_repo.is_participant(chat_id, user_id):
             raise PermissionError("Вы не являетесь участником чата")

@@ -50,7 +50,10 @@ class ChatService:
         private_chat = await self.chat_repo.get_or_create_private(creator_id, other_user_id)
         await self.session.commit()
 
-        return PrivateChatOut.model_validate(private_chat, update = {"other_user_id" : other_user_id}) #type: ignore 
+        return PrivateChatOut.model_validate({
+            "id": private_chat.id,
+            "other_user_id": other_user_id
+        }) 
 
 
     # Создание группового чата 

@@ -2,8 +2,6 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 from datetime import datetime 
 
-
-
 class ChatBase(BaseModel):
     id : int
     type : str
@@ -25,8 +23,11 @@ class GroupChatCreate(BaseModel):
     participants_ids : list[int] # ID участников
 
 
-class PrivateChatOut(ChatBase):
-    other_user_id : int 
+class PrivateChatOut(BaseModel):
+    id: int
+    other_user_id: int
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class GroupChatOut(ChatBase):

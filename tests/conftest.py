@@ -75,3 +75,21 @@ async def another_auth_user(ac: AsyncClient, another_user_data):
     token = login_resp.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
     return {"headers": headers, "user": user, "user_data": another_user_data}
+
+@pytest.fixture
+async def private_chat_id(auth_user, another_auth_user):
+    from app.services.chat import ChatService
+    from app.repositories.chat import ChatRepository
+    from app.repositories.user import UserRepository
+    from app.core.database import AsyncSessionLocal
+
+    async with AsyncSessionLocal() as db:
+        chat_repo = ChatRepository(db)
+        user_repo = UserRepository(db)
+        service = ChatService(db, chat_repo, user_repo)
+        chat = await service.create_private_chat(
+            creator_id=auth_user["user"]["id"],
+            other_user_id=another_auth_user["user"]["id"]
+        )
+        await db.commit()
+        return chat.id
