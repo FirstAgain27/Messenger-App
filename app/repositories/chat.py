@@ -1,6 +1,7 @@
 from typing import Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, case, and_, update
+from sqlalchemy import select, func, case, and_, update, delete
+from sqlalchemy.orm import selectin_polymorphic
 
 from app.models import Chat, GroupChat, ChatParticipant
 
@@ -9,8 +10,10 @@ class ChatRepository:
         self.session = session 
 
     # Получение чата по id 
-    async def get_by_id(self, chat_id : int) -> Optional[Chat]:
-        return await self.session.get(Chat, chat_id)
+    async def get_by_id(self, chat_id: int) -> Optional[Chat]:
+        stmt = select(Chat).options(selectin_polymorphic(Chat, [GroupChat])).where(Chat.id == chat_id)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
 
     # Получение всех чатов пользователя
     async def get_user_chats(self, user_id : int) -> List[Chat]:
@@ -52,14 +55,16 @@ class ChatRepository:
         return new_chat
 
     # Безвозвратное удаление чата у обоих пользователей 
-    async def delete_chat(self, chat_id : int) -> bool:
+    async def delete_chat(self, chat_id: int) -> bool:
+        # Сначала удаляем всех участников
+        await self.session.execute(
+            delete(ChatParticipant).where(ChatParticipant.chat_id == chat_id)
+        )
         chat = await self.session.get(Chat, chat_id)
-
-        if chat is not None:
+        if chat:
             await self.session.delete(chat)
             await self.session.flush()
             return True
-        
         return False
 
     # Скрыть чат для пользователя (soft delete)
@@ -104,18 +109,13 @@ class ChatRepository:
 
     # Обновить групповой чат
     async def update_group_chat(self, updates: dict, chat_id: int) -> Optional[GroupChat]:
-
-        chat = await self.session.scalar(select(Chat).where(Chat.id == chat_id, Chat.type == "group"))
-
-        if chat is None:
+        chat = await self.session.get(GroupChat, chat_id)
+        if not chat:
             return None
-        
         allowed_fields = {"name", "description", "avatar"}
-
         for field, value in updates.items():
             if field in allowed_fields:
                 setattr(chat, field, value)
-        
         await self.session.flush()
         return chat
     

@@ -1,63 +1,60 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
-from datetime import datetime 
+from datetime import datetime
 
-class ChatBase(BaseModel):
-    id : int
-    type : str
-    last_message_at : Optional[datetime]
-    created_at : datetime
 
-# Содержит данные, которые получаем от клиента, больше никакие другие(То, что заполняется автоматически - не пишем)
+# === Входные схемы (Create) ===
 class PrivateChatCreate(BaseModel):
-    other_user_id : int # ID второго участника
+    """Создание личного чата — клиент передаёт только ID второго участника."""
+    other_user_id: int
 
-# Содержит данные, которые получаем от клиента, больше никакие другие(То, что заполняется автоматически - не пишем)
+
 class GroupChatCreate(BaseModel):
-    model_config = ConfigDict(from_attributes=True )
-
-    name : str 
-    creator_id : int
-    description : Optional[str] = None
-    avatar : Optional[str] = None 
-    participants_ids : list[int] # ID участников
+    """Создание группового чата — creator_id берётся из токена, поэтому в схеме его нет."""
+    name: str
+    description: Optional[str] = None
+    avatar: Optional[str] = None
+    participants_ids: list[int]   # ID участников (создатель добавится автоматически в сервисе)
 
 
+# === Выходные схемы (Out) ===
 class PrivateChatOut(BaseModel):
+    """Ответ при создании/получении личного чата."""
     id: int
     other_user_id: int
 
     model_config = ConfigDict(from_attributes=True)
 
 
-class GroupChatOut(ChatBase):
-    name : str 
-    description : Optional[str]
-    avatar : Optional[str]
-    creator_id : int
-    participants_ids : list[int] 
-
-
-# Схема для обоих типов чатов
-class ChatOut(BaseModel):
-    id : int 
-    type : str
-    name : str | None = None
-    avatar : str | None = None
-    last_message_at : datetime
-
-class GroupChatUpdate(BaseModel):
-    name: Optional[str] = Field(None, min_length=1, max_length=50)
+class GroupChatOut(BaseModel):
+    """Ответ при создании/получении группового чата."""
+    id: int
+    type: str = "group"
+    name: str
+    description: Optional[str] = None
     avatar: Optional[str] = None
-    description: Optional[str] = Field(None, min_length=2, max_length=300)
-    
+    creator_id: int
+    participants_ids: list[int]
+    last_message_at: Optional[datetime] = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
 
 
+class ChatOut(BaseModel):
+    """Универсальная схема для списка чатов (и личных, и групповых)."""
+    id: int
+    type: str          # "private" или "group"
+    name: Optional[str] = None      # для группы — название, для личного — имя собеседника (заполняется в сервисе)
+    avatar: Optional[str] = None
+    last_message_at: Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 
-
-    
-
-
-
-
+# === Схема для обновления группового чата ===
+class GroupChatUpdate(BaseModel):
+    """Частичное обновление группового чата (только создателем)."""
+    name: Optional[str] = None
+    description: Optional[str] = None
+    avatar: Optional[str] = None

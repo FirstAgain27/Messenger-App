@@ -2,13 +2,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas.chat import PrivateChatOut, GroupChatOut, ChatOut
 from app.repositories import ChatRepository, UserRepository 
 from typing import Optional, List
-from app.models import GroupChat
+from app.models import GroupChat, ChatParticipant, Chat 
+from sqlalchemy import select
+from sqlalchemy.orm import selectin_polymorphic
 
 class ChatService:
     def __init__(self, session: AsyncSession, chat_repo: ChatRepository, user_repo: UserRepository) -> None:
         self.session = session
         self.chat_repo = chat_repo
         self.user_repo = user_repo
+
 
     # Приватный метод для проверки группового чата
     async def _validate_group_chat(self, chat_id: int, user_id: int):
@@ -24,18 +27,20 @@ class ChatService:
             raise PermissionError("Only creator can modify this group chat")
         return chat
 
-        
+
     # Получение чатов пользователя
-    async def get_user_chats(self, user_id: int) -> List[ChatOut]:
-        current_user = await self.user_repo.get_by_id(user_id)
-        if not current_user:
-            raise ValueError("User not found")
-        
-        chats = await self.chat_repo.get_user_chats(user_id=user_id)
-        
-        # Возвращаем Pydantic-схемы
-        return [ChatOut.model_validate(chat) for chat in chats]
-        
+    async def get_user_chats(self, user_id: int) -> List[Chat]:
+        stmt = (
+            select(Chat)
+            .options(selectin_polymorphic(Chat, [GroupChat]))
+            .join(ChatParticipant, Chat.id == ChatParticipant.chat_id)
+            .where(ChatParticipant.user_id == user_id)
+            .where(ChatParticipant.deleted_by_user == False)
+            .order_by(Chat.last_message_at.desc())
+        )
+        result = await self.session.execute(stmt)
+        return result.scalars().all()
+    
     
     # Создание личного чата между пользователями
     async def create_private_chat(self, creator_id: int, other_user_id: int) -> Optional[PrivateChatOut]:
@@ -78,9 +83,18 @@ class ChatService:
 
         await self.session.commit()
 
-        chat_dto = GroupChatOut.model_validate(group_chat)
-        # Возвращаем Data Transfer Object с полем participants_ids
-        return chat_dto.model_copy(update={"participants_ids" : normalized_ids})
+        # Создаем объект вручную, чтобы избежать ошибки с participants_ids
+        return GroupChatOut(
+            id=group_chat.id,
+            type="group",
+            name=group_chat.name,
+            description=group_chat.description,
+            avatar=group_chat.avatar,
+            creator_id=group_chat.creator_id,
+            participants_ids=normalized_ids,
+            last_message_at=group_chat.last_message_at,
+            created_at=group_chat.created_at
+        )
 
 
     # Удаление чата только для одного пользователя (soft delete)
@@ -104,18 +118,27 @@ class ChatService:
     
     # Частичное обновление группового чата
     async def update_group_chat(self, user_id: int, chat_id: int, updates: dict) -> Optional[GroupChatOut]:
-        # Проверяем права (существует ли чат и является ли пользователь участником/админом)
         await self._validate_group_chat(chat_id, user_id)
 
-        # Обновляем данные в репозитории
         updated_chat = await self.chat_repo.update_group_chat(updates=updates, chat_id=chat_id)
         if not updated_chat:
             return None
-        
-        # Сохраняем транзакцию
+
         await self.session.commit()
 
-        return GroupChatOut.model_validate(updated_chat)
+        participants_ids = await self.chat_repo.get_participant_ids(chat_id)
+
+        return GroupChatOut(
+            id=updated_chat.id,
+            type="group",
+            name=updated_chat.name,
+            description=updated_chat.description,
+            avatar=updated_chat.avatar,
+            creator_id=updated_chat.creator_id,
+            participants_ids=participants_ids,
+            last_message_at=updated_chat.last_message_at,
+            created_at=updated_chat.created_at
+        )
     
 
 

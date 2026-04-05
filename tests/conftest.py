@@ -93,3 +93,15 @@ async def private_chat_id(auth_user, another_auth_user):
         )
         await db.commit()
         return chat.id
+    
+@pytest.fixture
+async def group_chat_id(ac: AsyncClient, auth_user, another_auth_user):
+    """Создаёт групповой чат и возвращает его ID"""
+    payload = {
+        "name": "Test Group Fixture",
+        "participants_ids": [another_auth_user["user"]["id"]],
+        "avatar": None
+    }
+    resp = await ac.post("/api/chats/group", json=payload, headers=auth_user["headers"])
+    assert resp.status_code == 201
+    return resp.json()["id"]

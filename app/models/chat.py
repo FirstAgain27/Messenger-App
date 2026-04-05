@@ -20,6 +20,22 @@ class Chat(Base):
         "polymorphic_identity": "chat"
     }
 
+    @property
+    def name(self) -> str | None:
+        """Возвращает имя чата."""
+        # Если это групповой чат, берём его название.
+        if isinstance(self, GroupChat):
+            return self.name
+        # Для личного чата возвращаем None, т.к. имя будет сформировано на фронтенде.
+        return None
+
+    @property
+    def avatar(self) -> str | None:
+        """Возвращает аватар чата."""
+        # Аватар есть только у групповых чатов.
+        if isinstance(self, GroupChat):
+            return self.avatar
+        return None
 
 class GroupChat(Chat):
     __tablename__ = "group_chats"
