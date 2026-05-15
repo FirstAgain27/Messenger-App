@@ -22,7 +22,7 @@ async def update_current_user(
 
     try:
         updated_user = await user_service.user_profile_update(user_id=current_user.id,
-                                                          user_data=user_data)
+                                                              user_data=user_data)
 
     except ValueError as e:
         raise HTTPException(
